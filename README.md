@@ -13,6 +13,7 @@ Part of our student project at JKU: https://github.com/JKU-ICG/cvlab-2020
 [![YOUTUBE VIDEO](https://img.youtube.com/vi/kyKVQYG-j7U/0.jpg)](https://www.youtube.com/watch?v=kyKVQYG-j7U)
 
 ### Usage (PROJECT NOT YET COMPLETED):
+#### Set-Up
 
 > GET DATA: Download data.zip from [JKU Drive](https://drive.jku.at/filr/public-link/file-download/ff8080827595a3570175b7cd458f44a8/22433/-3426038204355214966/data_SAR.zip) and unzip.
 
