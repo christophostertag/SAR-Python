@@ -14,7 +14,7 @@ Part of our student project at JKU: https://github.com/JKU-ICG/cvlab-2020
 
 ### Usage (PROJECT NOT YET COMPLETED):
 
-Download data.zip from [WeTransfer](https://wetransfer.com/downloads/4577657b2f591d3abb63f62ab13290fa20201111141825/47a08a) and unzip.
+Download data.zip from [JKU Drive](https://drive.jku.at/filr/public-link/file-download/ff8080827595a3570175b7cd458f44a8/22433/-3426038204355214966/data_SAR.zip) and unzip.
 
 1. Install requirments
 ```
