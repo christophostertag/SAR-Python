@@ -22,6 +22,7 @@ pip3 install -r requirments.txt
 ```
 
 #### Calibration (Optional)
+All the calibration parameters for the camera are already provided in this Github repository and will be automatically applied during the image preprocessing.
 Download calibration.zip from [Google Drive](https://drive.google.com/open?id=1sn5okDv9zIt2ieGDdhi8-QqPwrsDI4-P) and unzip.
 
 To calibrate
