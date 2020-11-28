@@ -1,5 +1,7 @@
 ## SAR-Python: Search and Rescue with Airborne Optical Sectioning implemented in Python with OpenCv and PyTorch
 
+Part of our student project at JKU: https://github.com/JKU-ICG/cvlab-2020
+
 #### German News Article: https://ooe.orf.at/stories/3077237/
 
 #### Paper from our professors and post-docs at JKU: https://arxiv.org/abs/2009.08835
@@ -12,7 +14,7 @@
 
 ### Usage (PROJECT NOT YET COMPLETED):
 
-Download data.zip from ... and unzip.
+Download data.zip from https://wetransfer.com/downloads/4577657b2f591d3abb63f62ab13290fa20201111141825/47a08a and unzip.
 
 1. Install requirments
 ```
@@ -20,7 +22,7 @@ pip3 install -r requirments.txt
 ```
 
 #### Calibration (Optional)
-Download calibration.zip from ... and unzip.
+Download calibration.zip from https://drive.google.com/open?id=1sn5okDv9zIt2ieGDdhi8-QqPwrsDI4-P and unzip.
 
 To calibrate
 ```
