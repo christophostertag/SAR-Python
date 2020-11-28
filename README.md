@@ -1,6 +1,6 @@
 ## SAR-Python: Search and Rescue with Airborne Optical Sectioning implemented in Python with OpenCv and PyTorch
 
-Part of our student project at JKU Institute of Computer Graphics: https://github.com/JKU-ICG/cvlab-2020
+Part of our student project at JKU ICG: https://github.com/JKU-ICG/cvlab-2020
 
 #### German News Article: https://ooe.orf.at/stories/3077237/
 
