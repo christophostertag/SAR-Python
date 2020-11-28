@@ -14,9 +14,9 @@ Part of our student project at JKU: https://github.com/JKU-ICG/cvlab-2020
 
 ### Usage (PROJECT NOT YET COMPLETED):
 
-> Download data.zip from [JKU Drive](https://drive.jku.at/filr/public-link/file-download/ff8080827595a3570175b7cd458f44a8/22433/-3426038204355214966/data_SAR.zip) and unzip.
+0. Download data.zip from [JKU Drive](https://drive.jku.at/filr/public-link/file-download/ff8080827595a3570175b7cd458f44a8/22433/-3426038204355214966/data_SAR.zip) and unzip.
 
-> Install requirments
+1. Install requirments
 ```
 pip3 install -r requirments.txt
 ```
@@ -25,7 +25,7 @@ pip3 install -r requirments.txt
 All the calibration parameters for the camera are already provided in this Github repository and will be automatically applied during the image preprocessing.
 > Download calibration.zip from [Google Drive](https://drive.google.com/open?id=1sn5okDv9zIt2ieGDdhi8-QqPwrsDI4-P) and unzip.
 
-To calibrate
+> To calibrate
 ```
 python3 calibrate.py -r
 ```
