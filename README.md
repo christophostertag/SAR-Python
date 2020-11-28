@@ -11,7 +11,7 @@ Part of our student project at JKU: https://github.com/JKU-ICG/cvlab-2020
 
 
 <img src="https://media.springernature.com/m685/springer-static/image/art%3A10.1038%2Fs42256-020-00261-3/MediaObjects/42256_2020_261_Fig1_HTML.png" width="480" alt>
-<em style="font-size:0.5em">(a) Our drone autonomously scanning a forest patch. In contrast to recording and analyzing single images (b), AOS combines multiple images that are captured within a synthetic aperture before the resulting integral image is analyzed (c). Single thermal drone recordings at an altitude of 35 m above dense forest ground: (d) mixed forest, (e) conifer forest. The arrows indicate partial heat signals of occluded people on the ground. The insets show AOS results that are achieved when multiple thermal images are integrated. Note that contrast and brightness of the insets have been adjusted for better visibility.</em>
+<em font-size=0.5em>(a) Our drone autonomously scanning a forest patch. In contrast to recording and analyzing single images (b), AOS combines multiple images that are captured within a synthetic aperture before the resulting integral image is analyzed (c). Single thermal drone recordings at an altitude of 35 m above dense forest ground: (d) mixed forest, (e) conifer forest. The arrows indicate partial heat signals of occluded people on the ground. The insets show AOS results that are achieved when multiple thermal images are integrated. Note that contrast and brightness of the insets have been adjusted for better visibility.</em>
 
 #### Youtube Video
 [![YOUTUBE VIDEO](https://img.youtube.com/vi/kyKVQYG-j7U/0.jpg)](https://www.youtube.com/watch?v=kyKVQYG-j7U)
