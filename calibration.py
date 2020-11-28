@@ -11,15 +11,6 @@ import matplotlib.pyplot as plt
 import torch
 from torchvision.utils import make_grid
 
-# PARSE ARGS
-parser = argparse.ArgumentParser(description='Calibrates camera from chess pictures located at calibration/thermal/.')
-parser.add_argument('-v','--verbose', help='show visual output of calibration', action='store_true')
-parser.add_argument('-r','--recalibrate', help='recalibrate, even if calibration already exists', action='store_true')
-args = vars(parser.parse_args())
-
-verbose = args['verbose']
-recalibrate = args['recalibrate']
-
 # FUNCTION DEFINITIONS
 def show_images(images: np.ndarray, mask: np.ndarray = None, figsize=None):
     fig = plt.figure(figsize=figsize)
@@ -59,6 +50,15 @@ def draw_corners(image, corners, grid, cmap=None):
 ### CALIBRATION
 
 if __name__ == '__main__':
+
+    # PARSE ARGS
+    parser = argparse.ArgumentParser(description='Calibrates camera from chess pictures located at calibration/thermal/.')
+    parser.add_argument('-v','--verbose', help='show visual output of calibration', action='store_true')
+    parser.add_argument('-r','--recalibrate', help='recalibrate, even if calibration already exists', action='store_true')
+    args = vars(parser.parse_args())
+
+    verbose = args['verbose']
+    recalibrate = args['recalibrate']
 
     # Check if calibration parameters can be loaded
     finished = False
