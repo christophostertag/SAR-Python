@@ -16,7 +16,7 @@ Part of our student project at JKU: https://github.com/JKU-ICG/cvlab-2020
 
 > Download data.zip from [JKU Drive](https://drive.jku.at/filr/public-link/file-download/ff8080827595a3570175b7cd458f44a8/22433/-3426038204355214966/data_SAR.zip) and unzip.
 
-1. Install requirments
+> Install requirments
 ```
 pip3 install -r requirments.txt
 ```
