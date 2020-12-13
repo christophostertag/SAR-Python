@@ -12,18 +12,18 @@ import torch
 from torchvision.utils import make_grid
 
 # FUNCTION DEFINITIONS
-def show_images(images: np.ndarray, mask: np.ndarray = None, figsize=None):
+def show_images(images: np.ndarray, mask: np.ndarray = None, figsize=None, cmap: str = "gray"):
     fig = plt.figure(figsize=figsize)
     if mask is not None:  # k,
         images = images[mask, ...]  # k x h x w
     images = torch.as_tensor(images).unsqueeze(1)  # n(k) x 1 x h x w
     grid = make_grid(images, nrow=int(np.sqrt(images.size(0))))  # 3 x h x w
-    plt.imshow(grid.permute(1, 2, 0))
+    plt.imshow(grid.permute(1, 2, 0), cmap=cmap)
     plt.axis('off')
     plt.show()
     
 
-def show_image(image: np.ndarray, cmap: str = None, figsize=None):
+def show_image(image: np.ndarray, cmap: str = "gray", figsize=None):
     fig = plt.figure(figsize=figsize)
     plt.imshow(image, cmap=cmap)
     plt.axis('off')
