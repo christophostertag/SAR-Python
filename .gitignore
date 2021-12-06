@@ -144,3 +144,4 @@ dmypy.json
 .pyre/
 *.blend1
 tmp/
+*.pth
