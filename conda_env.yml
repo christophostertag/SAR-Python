@@ -1,0 +1,45 @@
+name: cv
+channels:
+  - conda-forge
+  - nvidia
+  - pytorch
+dependencies:
+#  - python=3.8
+
+  - numpy
+  - pandas
+
+  - scikit-learn
+
+  - matplotlib
+  - seaborn
+
+  # pytorch
+  - pytorch
+  - torchvision
+  - torchaudio
+  - cudatoolkit=10.2
+
+  # opencv
+  - opencv
+
+  - notebook
+  - jupyterlab
+  - ipywidgets
+
+#  - plotly::plotly
+#  - plotly::plotly-orca
+#  - nodejs  # essential for plotly
+#  - conda-forge::psutil  # used to create offline plots with plotly
+  - pip
+  - pip:
+#      - nose
+      - openpyxl  # for creating excel files
+
+#anaconda_prompt> conda env create -f /path/to/this_file.yml
+#anaconda_prompt> conda env update -f /path/to/this_file.yml
+
+#anaconda_prompt> jupyter nbextension enable --py widgetsnbextension
+
+#anaconda_prompt> jupyter labextension install @jupyter-widgets/jupyterlab-manager
+#anaconda_prompt> jupyter labextension install @jupyterlab/plotly-extension
