@@ -1,5 +1,6 @@
 from glob import glob
 
+import cv2
 import matplotlib.pyplot as plt # plotting library
 import numpy as np # this module is useful to work with numerical arrays
 import pandas as pd
@@ -31,13 +32,7 @@ class AnomalyDetector():
         anomaly_map = np.zeros(x.shape[1:])
         npx = x.cpu().squeeze().numpy()
 
-        plt.figure(figsize=(16, 16))
-        ax = plt.subplot(1,1,1)
-        plt.imshow(np.swapaxes(npx, 0, 2))
-        ax.get_xaxis().set_visible(False)
-        ax.get_yaxis().set_visible(False)
-        ax.set_title('Original image')
-        plt.show()
+        cv2.imwrite('a-origin.png', cv2.cvtColor(np.swapaxes(npx*256,0,2), cv2.COLOR_RGB2BGR))
 
         for i, AE in enumerate(self.AEs):
             AE.eval()
@@ -45,27 +40,16 @@ class AnomalyDetector():
                 reconstruction = AE(x).cpu().squeeze().numpy()
 
             diff = np.abs(npx - reconstruction)
-            anomaly_map += diff * diff.sum()
+            diff = diff
+            anomaly_map += diff * diff.sum() #/ diff.sum(axis=0, dtype=np.single)[np.newaxis]
 
-            plt.figure(figsize=(16, 16))
-            ax = plt.subplot(1,1,1)
-            plt.imshow(np.swapaxes(diff/ np.max(diff), 0, 2))
-            ax.get_xaxis().set_visible(False)
-            ax.get_yaxis().set_visible(False)
-            ax.set_title('Difference Map '+str(i))
-            plt.show()
+            cv2.imwrite('difference_'+str(i)+'.png', cv2.cvtColor(np.swapaxes(diff/ np.max(diff)*256,0,2), cv2.COLOR_RGB2BGR))
 
         anomaly_map = anomaly_map / np.max(anomaly_map)
 
-
-        plt.figure(figsize=(16, 16))
-        ax = plt.subplot(1,1,1)
-        plt.imshow(np.swapaxes(anomaly_map, 0, 2))
-        ax.get_xaxis().set_visible(False)
-        ax.get_yaxis().set_visible(False)
-        ax.set_title('Anomaly Map')
-
-        plt.show()
+        anomaly_map32 = np.zeros_like(anomaly_map, dtype=np.single)
+        anomaly_map32 += anomaly_map
+        cv2.imwrite('anomaly.png', cv2.cvtColor(np.swapaxes((anomaly_map32*256),0,2), cv2.COLOR_RGB2BGR))
 
         return anomaly_map
 
@@ -199,18 +183,17 @@ if False:
 
         model.plot_ae_outputs(n=5)
 else:
-    model.load(glob('EPOCH60*'))
+    model.load(glob('EPOCH30*'))
 
 
-for i in range(4):
-    img = validation_dataset[i*6][0].unsqueeze(0).to(device)
+img = validation_dataset[1][0].unsqueeze(0).to(device)
 
-    # plt.figure(figsize=(16, 16))
-    # ax = plt.subplot(1, 1, 1)
-    # plt.imshow(similarity(img), cmap='gray')
-    # ax.get_xaxis().set_visible(False)
-    # ax.get_yaxis().set_visible(False)
-    # ax.set_title('Similarity Map')
-    # plt.show()
+# plt.figure(figsize=(16, 16))
+# ax = plt.subplot(1, 1, 1)
+# plt.imshow(similarity(img), cmap='gray')
+# ax.get_xaxis().set_visible(False)
+# ax.get_yaxis().set_visible(False)
+# ax.set_title('Similarity Map')
+# plt.show()
 
-    model(img)
+model(img)

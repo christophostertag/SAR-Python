@@ -25,7 +25,7 @@ def similarity(tensor : np.ndarray, kernel_size=3):
 
 
 class ImageDataset(Dataset):
-    def __init__(self, dataset, colorspace=cv2.COLOR_BGR2RGB, transform=None, target_transform=None):
+    def __init__(self, dataset, colorspace=cv2.COLOR_BGR2HSV, transform=None, target_transform=None):
         self.images = sorted(glob('../data/' + dataset +'/*/*.png', recursive=False))
         self.colorspace = colorspace
         self.transform = transform
@@ -43,3 +43,25 @@ class ImageDataset(Dataset):
         if self.target_transform:
             pass #label = self.target_transform(label)
         return image, 1#, label
+
+    class WarpedImageDataset(Dataset):
+        def __init__(self, dataset, data_dir='../data/', colorspace=cv2.COLOR_BGR2RGB, transform=None, target_transform=None):
+
+            self.mask = cv2.imread(data_dir + 'mask.png', 0)
+            self.images = sorted(glob(data_dir + dataset + '/*/*.png', recursive=False))
+            self.colorspace = colorspace
+            self.transform = transform
+            self.target_transform = target_transform
+
+        def __len__(self):
+            return len(self.images)
+
+        def __getitem__(self, idx):
+            img_path = self.images[idx]
+            image = cv2.cvtColor(cv2.imread(img_path), self.colorspace)[1:-2, 1:-2]
+            # label = cv2.cvtColor(cv2.imread(img_path), self.colorspace)[:-1,:-1]
+            if self.transform:
+                image = self.transform(image)
+            if self.target_transform:
+                pass  # label = self.target_transform(label)
+            return image, 1  # , label
