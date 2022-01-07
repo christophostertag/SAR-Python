@@ -131,4 +131,5 @@ def demo_load_image_sets():
         i += 1
 
 
-demo_load_image_sets()
+if __name__ == '__main__':
+    demo_load_image_sets()
