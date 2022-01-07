@@ -67,11 +67,13 @@ def get_image_sets(
         size_filter: Optional[Tuple[int]] = (1024, 1024, 3),
         sets=1,
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-    n_views = 10
     timesteps = np.array(timesteps)
     views = np.array(views)
 
     all_bounding_boxes = load_bounding_boxes()
+
+    view_codes = ['B05', 'B04', 'B03', 'B02', 'B01', 'G01', 'G02', 'G03', 'G04', 'G05']
+    file_names = [f'{i}-{code}.png' for i in range(7) for code in view_codes]
 
     image_dirs = [d for d in dir.glob('*/*') if d.is_dir() and filter in d.as_posix()]
     mask_ = load_mask()
@@ -87,10 +89,11 @@ def get_image_sets(
         if len(bounding_boxes):
             bounding_boxes[:, 1] -= cropx
 
-        image_paths = image_dir.glob('*.png')
+        image_paths = [image_dir / file for file in file_names]
+        # image_paths = image_dir.glob('*.png')
         image_paths = [p.relative_to(dir) for p in image_paths]
-        image_paths = np.array(image_paths).reshape(-1, n_views)
-        image_paths = image_paths[timesteps, views[:, None]]
+        image_paths = np.array(image_paths).reshape(-1, len(view_codes))
+        image_paths = image_paths[timesteps + 3][:, views]
 
         images = []
 
@@ -100,13 +103,13 @@ def get_image_sets(
             #     image2 = np.array(im)
             if size_filter is None or image.shape == size_filter:
                 w, h, _ = image.shape
+                if mask:
+                    image *= mask_
                 if warp:
                     image_name = file.name.replace('.png', '')
                     homography = np.array(homographies[image_name])
                     image = cv2.warpPerspective(image, homography, (w, h))
                     # image = cv2.bitwise_and(image, mask)
-                if mask:
-                    image *= mask_
                 if cropx > 0:
                     image = image[cropx:-cropx]
 
@@ -121,7 +124,15 @@ def demo_load_image_sets():
     image_sets = get_image_sets(sets=2, filter='valid')
     i = 0
     for images, paths, boxes in image_sets:
-        im = images.mean(1).astype(np.uint8)[0]
+
+        for im in images[0]:
+            im = im.copy()
+            draw_bounding_boxes(im, boxes)
+
+            cv2.imshow("Window", im)
+            cv2.waitKey()
+
+        im = images[0].mean(0).astype(np.uint8)
         draw_bounding_boxes(im, boxes)
         print(f'Shape of image set {i}: {images.shape}, bounding_boxes={len(boxes) > 0}')
 
