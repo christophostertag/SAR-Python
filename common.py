@@ -66,7 +66,7 @@ def get_image_sets(
         cropx=192,
         size_filter: Optional[Tuple[int]] = (1024, 1024, 3),
         sets=1,
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     n_views = 10
     timesteps = np.array(timesteps)
     views = np.array(views)
@@ -84,7 +84,8 @@ def get_image_sets(
         bounding_boxes = all_bounding_boxes.get(image_dir.parts[-1], np.array([])).copy()
 
         # adjust boxes when crop was set!
-        bounding_boxes[:, 1] -= cropx
+        if len(bounding_boxes):
+            bounding_boxes[:, 1] -= cropx
 
         image_paths = image_dir.glob('*.png')
         image_paths = [p.relative_to(dir) for p in image_paths]
