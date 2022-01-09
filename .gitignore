@@ -145,3 +145,5 @@ dmypy.json
 *.blend1
 tmp/
 *.pth
+
+/output/

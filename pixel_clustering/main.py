@@ -10,7 +10,8 @@ from sklearn.cluster import MiniBatchKMeans
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import MinMaxScaler
 
-from common import get_centered_rectangle_slice, load_image_batches, load_mask, crop190, select_bounding_boxes, \
+from common import load_mask
+from pixel_clustering.common import get_centered_rectangle_slice, load_image_batches, crop190, select_bounding_boxes, \
     draw_bounding_boxes, load_bounding_boxes, Paths
 
 
