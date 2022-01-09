@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 from scipy.signal import convolve2d
 
-from common import draw_bounding_boxes, Paths, get_image_sets, imshow
+from common import draw_bounding_boxes, Paths, get_image_sets, imshow, find_boxes
 
 
 def get_temporal_diff_heatmaps(
@@ -75,7 +75,9 @@ def main(
         detection_map = get_detection_map(heatmaps)
         im = images[3, 4].copy()
         im[np.where(detection_map > 0)] = [0, 0, 255]
+        ourboxes = find_boxes(detection_map)
         draw_bounding_boxes(im, boxes)
+        draw_bounding_boxes(im, ourboxes, box_color=(255, 255, 0))
         p = Paths.output / paths[3, 4]
         p.parent.mkdir(parents=True, exist_ok=True)
         # cv2.imwrite(str(p), im)

@@ -14,7 +14,7 @@ class Paths:
     data_test = data / 'test'
     validation_labels = data / 'validation/labels.json'
 
-    output = Path.home() / 'data_WiSAR/output1'
+    output = Path('output1')
 
 
 def load_mask(mask_path=Paths.data / 'mask.png'):
@@ -147,6 +147,40 @@ def imshow(image: np.ndarray):
     image = image.clip(0, 255)
     image = image.astype(np.uint8)
     Image.fromarray(image).show()
+
+
+def find_boxes(label : np.ndarray):
+    boxes = []
+    todo = []
+    for x in range(label.shape[0]):
+        if label[x].any() != 0:
+            for y in range(label.shape[1]):
+                if label[x,y]:
+                    todo.append((x,y))
+
+                    xmin = xmax = x
+                    ymin = ymax = y
+                    while len(todo) != 0:
+                        x, y = todo.pop()
+                        label[x,y] = False
+
+                        xmin = min(xmin, x)
+                        xmax = max(xmax, x)
+                        ymin = min(ymin, y)
+                        ymax = max(ymax, y)
+
+                        if label[x+1,y]:
+                            todo.append((x+1,y))
+                        if label[x-1,y]:
+                            todo.append((x-1,y))
+                        if label[x,y+1]:
+                            todo.append((x,y+1))
+                        if label[x,y-1]:
+                            todo.append((x,y-1))
+
+                    boxes.append(np.array([ymin,xmin,ymax-ymin,xmax-xmin]))
+
+    return np.array(boxes)
 
 
 if __name__ == '__main__':
