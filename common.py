@@ -63,7 +63,7 @@ def get_image_sets(
         warp=True,
         timesteps=range(-3, 4),
         views=range(10),
-        cropx=192,
+        cropx=0,
         size_filter: Optional[Tuple[int]] = (1024, 1024, 3),
         sets=1,
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
@@ -124,7 +124,6 @@ def demo_load_image_sets():
     image_sets = get_image_sets(sets=2, filter='valid')
     i = 0
     for images, paths, boxes in image_sets:
-
         for im in images[0]:
             im = im.copy()
             draw_bounding_boxes(im, boxes)
@@ -140,6 +139,14 @@ def demo_load_image_sets():
         cv2.waitKey()
 
         i += 1
+
+
+def imshow(image: np.ndarray):
+    if image.ndim == 3 and image.shape[2] == 3:
+        image = image[:, :, [2, 1, 0]]
+    image = image.clip(0, 255)
+    image = image.astype(np.uint8)
+    Image.fromarray(image).show()
 
 
 if __name__ == '__main__':
