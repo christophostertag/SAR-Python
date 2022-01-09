@@ -11,8 +11,7 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import MinMaxScaler
 
 from common import get_centered_rectangle_slice, load_image_batches, load_mask, crop190, select_bounding_boxes, \
-    draw_bounding_boxes, load_bounding_boxes
-from conf import Paths
+    draw_bounding_boxes, load_bounding_boxes, Paths
 
 
 class FeatureExtractor:
@@ -203,7 +202,7 @@ def main(
     rel_image_paths = [p.relative_to(image_path) for p in rel_image_paths]
 
     # mask and crop
-    image_mask = crop190(load_mask())
+    image_mask = crop190(load_mask()[None, :])
     images = crop190(images) * image_mask
 
     if load_checkpoint.value == Checkpoints.features.value:
