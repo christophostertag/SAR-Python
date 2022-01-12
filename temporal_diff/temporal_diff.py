@@ -1,3 +1,5 @@
+import json
+
 import cv2
 import numpy as np
 from scipy.signal import convolve2d
@@ -69,6 +71,7 @@ def get_detection_map(
 def main(
         show=True,
 ):
+    predictions = {}
     image_sets = get_image_sets(sets=100, filter='valid')
     for images, paths, boxes in image_sets:
         heatmaps = get_temporal_diff_heatmaps(images, boxes)
@@ -80,11 +83,17 @@ def main(
         draw_bounding_boxes(im, ourboxes, box_color=(255, 255, 0))
         p = Paths.output / paths[3, 4]
         p.parent.mkdir(parents=True, exist_ok=True)
-        # cv2.imwrite(str(p), im)
+        cv2.imwrite(str(p), im)
         print(f'Image exported: {p}')
         if show:
             imshow(im)
 
+        predictions[p.parent.name] = ourboxes.tolist()
+        pass
+
+    with open('predictions.json', 'w') as outfile:
+        json.dump(predictions, outfile)
+
 
 if __name__ == '__main__':
-    main()
+    main(False)
