@@ -1,10 +1,11 @@
+import json
 from pathlib import Path
 from typing import Optional, Tuple, Dict
 
 import numpy as np
 from PIL import Image
 
-from common import Paths, load_bounding_boxes, draw_bounding_boxes
+from conf import Paths
 
 
 def load_image_batches(
@@ -36,6 +37,19 @@ def load_image_batches(
         yield np.array(images), path_list
 
 
+def load_mask(mask_path=Paths.data / 'mask.png'):
+    mask = np.array(Image.open(mask_path))[None, :, :, None]
+    mask = mask / mask.max()
+    mask = mask.astype(np.uint8)
+    return mask
+
+
+def load_bounding_boxes(path=Paths.validation_labels) -> Dict[str, np.ndarray]:
+    with open(path, 'r') as h:
+        j = json.load(h)
+    return {k: np.array(j[k]) for k in sorted(j.keys())}
+
+
 def crop190(images: np.ndarray) -> np.ndarray:
     return images[:, 190:-190]
 
@@ -55,6 +69,24 @@ def get_centered_rectangle_slice(
         slices.append(slice(offset, offset + length))
 
     return tensor[tuple(slices)]
+
+
+def draw_bounding_boxes(
+        image: np.ndarray,
+        boxes: np.ndarray,
+        box_color=(0, 255, 255),
+        line_thickness=2,
+        x_offset=0,
+        y_offset=0,
+):
+    t = line_thickness
+    for y0, x0, ly, lx in boxes:
+        x0 += x_offset
+        y0 += y_offset
+        image[x0:x0 + lx, y0:y0 + t] = box_color
+        image[x0:x0 + lx, y0 + ly - t:y0 + ly] = box_color
+        image[x0:x0 + t, y0:y0 + ly] = box_color
+        image[x0 + lx:x0 + lx + t, y0:y0 + ly] = box_color
 
 
 def select_bounding_boxes(
