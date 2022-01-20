@@ -26,9 +26,9 @@ def get_temporal_diff_heatmaps(
         for i in range(len(color_diff)):
             color_diff_filtered[i] = blur_color_diff(color_diff_filtered[i] / 255)
 
-        cdiff = color_diff_filtered[7] * 2 * 255 + 128
-        draw_bounding_boxes(cdiff, boxes)
-        imshow(cdiff)
+        # cdiff = color_diff_filtered[7] * 2 * 255 + 128
+        # draw_bounding_boxes(cdiff, boxes)
+        # imshow(cdiff)
 
         # color_diff_correction = np.nanmean(color_diff, axis=(1, 2), keepdims=True)
         color_diff_correction = 0
@@ -57,6 +57,118 @@ def get_temporal_diff_heatmaps(
     return heatmaps
 
 
+def find_clusters(detection_map):
+    detection_map = detection_map.copy()
+    cluster_positions = []
+    cluster_intensities = []
+    for x in range(detection_map.shape[0]):
+        if detection_map[x].any() != 0:
+            for y in range(detection_map.shape[1]):
+                todo = []
+                positions = []
+                if detection_map[x, y] != 0:
+                    todo.append((x, y))
+                    positions.append((x, y))
+
+                    value = 0
+                    while len(todo) != 0:
+                        x, y = todo.pop()
+                        if value < detection_map[x, y]:
+                            value = detection_map[x, y]
+                            todo = []
+                            positions = [(x, y)]
+
+                        if (x + 1, y) not in positions and detection_map[x + 1, y] != 0 and detection_map[x + 1, y] >= value:
+                            todo.append((x + 1, y))
+                            positions.append((x + 1, y))
+                        if (x - 1, y) not in positions and detection_map[x - 1, y] != 0 and detection_map[x - 1, y] >= value:
+                            todo.append((x - 1, y))
+                            positions.append((x - 1, y))
+                        if (x, y + 1) not in positions and detection_map[x, y + 1] != 0 and detection_map[x, y + 1] >= value:
+                            todo.append((x, y + 1))
+                            positions.append((x, y + 1))
+                        if (x, y - 1) not in positions and detection_map[x, y - 1] != 0 and detection_map[x, y - 1] >= value:
+                            todo.append((x, y - 1))
+                            positions.append((x, y - 1))
+
+                    intensity = value
+                    position = positions[0]
+
+                    cluster_positions.append(position)
+                    cluster_intensities.append(intensity)
+
+                    todo = [position]
+                    positions = [position]
+
+                    while len(todo) != 0:
+                        x, y = todo.pop()
+                        value = detection_map[x, y]
+                        detection_map[x, y] = 0
+
+                        if (x + 1, y) not in positions and detection_map[x + 1, y] != 0 and detection_map[x + 1, y] <= value:
+                            todo.append((x + 1, y))
+                            positions.append((x + 1, y))
+                        if (x - 1, y) not in positions and detection_map[x - 1, y] != 0 and detection_map[x - 1, y] <= value:
+                            todo.append((x - 1, y))
+                            positions.append((x - 1, y))
+                        if (x, y + 1) not in positions and detection_map[x, y + 1] != 0 and detection_map[x, y + 1] <= value:
+                            todo.append((x, y + 1))
+                            positions.append((x, y + 1))
+                        if (x, y - 1) not in positions and detection_map[x, y - 1] != 0 and detection_map[x, y - 1] <= value:
+                            todo.append((x, y - 1))
+                            positions.append((x, y - 1))
+
+    return cluster_positions, cluster_intensities
+
+
+def keep_top_n(detection_map, cluster_positions, cluster_intensities, min_detections, MIN_PIXELS=100):
+    label = np.zeros_like(detection_map, dtype=bool)
+    sorted_indices = np.argsort(cluster_intensities)
+    for i in reversed(sorted_indices):
+        todo = [cluster_positions[i]]
+        positions = [cluster_positions[i]]
+
+        while len(todo) != 0:
+            x, y = todo.pop()
+            value = detection_map[x, y]
+
+            if label[x, y]:
+                positions =[]
+                break
+
+            if (x + 1, y) not in positions and detection_map[x + 1, y] >= min_detections:
+                todo.append((x + 1, y))
+                positions.append((x + 1, y))
+            if (x - 1, y) not in positions and detection_map[x - 1, y] >= min_detections:
+                todo.append((x - 1, y))
+                positions.append((x - 1, y))
+            if (x, y + 1) not in positions and detection_map[x, y + 1] >= min_detections:
+                todo.append((x, y + 1))
+                positions.append((x, y + 1))
+            if (x, y - 1) not in positions and detection_map[x, y - 1] >= min_detections:
+                todo.append((x, y - 1))
+                positions.append((x, y - 1))
+
+        if len(positions) > MIN_PIXELS:
+
+            positions = np.swapaxes(np.array(positions), 0, 1)
+
+            weights = detection_map[positions[0], positions[1]]
+            average = (np.average(positions[0], weights=weights), np.average(positions[1], weights=weights))
+            distance = np.linalg.norm((positions[0] - average[0], positions[1] - average[1]), axis=0)
+            order = weights / (1 + np.sqrt(distance) * 0.2)
+
+            for distance_index in np.argsort(distance)[MIN_PIXELS:]:
+                if order[distance_index] < cluster_intensities[i] / 4:
+                    positions[:, distance_index] = -1
+
+            positions = positions[:, positions[0] >= 0]
+
+            label[positions[0], positions[1]] = True
+
+    return label
+
+
 def get_detection_map(
         heatmaps: np.ndarray,
         images:np.ndarray,
@@ -68,41 +180,10 @@ def get_detection_map(
 ) -> np.ndarray:
     kernel = np.ones((kernel_size, kernel_size)) / kernel_size ** 2
 
-    # conv_heatmap = convolve2d(heatmaps[0, 7], kernel, mode='same')
-    # thresh = thresh_factor * np.quantile(conv_heatmap, q=thresh_quantile)
-    # detection = conv_heatmap > thresh
-    # d = detection * 255
-    # d = np.moveaxis((d, d, d), 0, 2) * 2
-    # # draw_bounding_boxes(d, boxes)
-    # imshow(d[300:])
-
-    # luminance_maps = []
-    # for camera_index in range(10):
-    #     for timestep_index in range(7):
-    #         luminance_maps.append((np.maximum(images[timestep_index, camera_index, :, :, 0], images[timestep_index, camera_index, :, :, 1], images[timestep_index, camera_index, :, :, 2])+np.minimum(images[timestep_index, camera_index, :, :, 0], images[timestep_index, camera_index, :, :, 1], images[timestep_index, camera_index, :, :, 2]))*0.5)
-    #
-    #     mean_luminance = np.array(luminance_maps[-7:-1]).mean(axis=0)
-    #     for image_index in range(-7, 0):
-    #         luminance_maps[image_index] = np.clip(luminance_maps[image_index] - mean_luminance, 0, np.max(luminance_maps))
-    #
-    #         weight_map = np.empty((1024, 1024, 3))
-    #         weight_map[:, :, 0] = luminance_maps[image_index]
-    #         weight_map[:, :, 1] = weight_map[:, :, 0]
-    #         weight_map[:, :, 2] = weight_map[:, :, 0]
-    #         draw_bounding_boxes(weight_map, boxes, box_color=(0, 170, 255))
-    #         imshow(weight_map)
-    #
-    #
-    #         weight_map[:, :, 0] = luminance_maps[image_index] - (luminance_maps[image_index-1] if image_index > -7 else 0)
-    #         weight_map[:, :, 1] = weight_map[:, :, 0]
-    #         weight_map[:, :, 2] = weight_map[:, :, 0]
-    #         draw_bounding_boxes(weight_map, boxes, box_color=(0, 170, 255))
-    #         imshow(weight_map)
-
     detection_maps = []
     for heatmap in heatmaps.reshape(-1, *heatmaps.shape[2:]):
         conv_heatmap = convolve2d(heatmap, kernel, mode='same')
-        thresh = thresh_factor * np.quantile(np.nan_to_num(conv_heatmap), q=thresh_quantile)
+        thresh = thresh_factor * np.nanquantile(conv_heatmap, thresh_quantile)
         detection = conv_heatmap > thresh
         detection_maps.append(detection)
 
@@ -113,9 +194,21 @@ def get_detection_map(
     weight_map[:, :, 2] = weight_map[:,:,0]
     draw_bounding_boxes(weight_map, boxes, box_color=(0, 170, 255))
     imshow(weight_map*255/20)
-    detection_map = detection_maps.sum(axis=(0, 1)) >= min_detections
+    # detection_map = detection_maps.sum(axis=(0, 1)) >= min_detections
+    detection_map = detection_maps.sum(axis=(0, 1))
 
-    return detection_map
+    cluster_positions, cluster_intensities = find_clusters(detection_map)
+
+    for i in reversed(range(len(cluster_intensities))):
+        if cluster_intensities[i] < min_detections:
+            cluster_positions.pop(i)
+            cluster_intensities.pop(i)
+
+    label = keep_top_n(detection_map, cluster_positions, cluster_intensities, min_detections, 100)
+
+    ourboxes = find_boxes(label)
+
+    return label, ourboxes
 
 
 def blor(image:np.ndarray, size1=2, size2=(15, 15), size3=(19, 19), size4=(19, 19)):
@@ -129,8 +222,8 @@ def blor(image:np.ndarray, size1=2, size2=(15, 15), size3=(19, 19), size4=(19, 1
     # ret = np.moveaxis(ret, 0, 2)
     blur_blor = cv2.GaussianBlur(blor, size2, 0)
 
-    luminosity = (np.maximum(np.maximum(blur_blor[:, :, 0], blur_blor[:, :, 1]), blur_blor[:, :, 2]) + np.minimum(np.minimum(blur_blor[:, :, 0], blur_blor[:, :, 1]), blur_blor[:, :, 2])) * 0.5
-    saturation = (np.maximum(np.maximum(blur_blor[:, :, 0], blur_blor[:, :, 1]), blur_blor[:, :, 2]) - np.minimum(np.minimum(blur_blor[:, :, 0], blur_blor[:, :, 1]), blur_blor[:, :, 2])) / (1 - np.abs(luminosity * 2 - 1))
+    luminosity = (np.max(blur_blor, axis=2) + np.min(blur_blor, axis=2)) * 0.5
+    saturation = (np.max(blur_blor, axis=2) - np.min(blur_blor, axis=2)) / (1 - np.abs(luminosity * 2 - 1))
 
     blur_saturation = cv2.GaussianBlur(saturation, size3, 0)
     mix = (np.moveaxis((blur_saturation, blur_saturation, blur_saturation), 0, 2) * image)
@@ -150,17 +243,20 @@ def main(
         # if i != 0:
         #     i -= 1
         #     continue
-        heatmaps = get_temporal_diff_heatmaps(images, boxes, blur_color_diff=lambda x: blor(x))
-        detection_map = get_detection_map(heatmaps, images, boxes=boxes, thresh_quantile=0.95)
+        p = Paths.output / paths[3, 4]
+        p.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            heatmaps = np.load(str(p.parent / 'heatmap.npy'))
+        except:
+            heatmaps = get_temporal_diff_heatmaps(images, boxes, blur_color_diff=lambda x: blor(x))
+            np.save(str(p.parent / 'heatmap.npy'), heatmaps)
+        detection_map, ourboxes = get_detection_map(heatmaps, images, boxes=boxes, thresh_quantile=0.985)
         im = images[3, 4].copy()
         im[np.where(detection_map > 0)] = [0, 0, 255]
-        ourboxes = find_boxes(detection_map)
         if draw_boxes:
             draw_bounding_boxes(im, boxes)
         if draw_ourboxes:
             draw_bounding_boxes(im, ourboxes, box_color=(255, 255, 0))
-        p = Paths.output / paths[3, 4]
-        p.parent.mkdir(parents=True, exist_ok=True)
         cv2.imwrite(str(p), im)
         print(f'Image exported: {p}')
         if show:

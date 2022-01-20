@@ -85,6 +85,11 @@ def get_image_sets(
         homographies = load_homographies(image_dir)
         bounding_boxes = all_bounding_boxes.get(image_dir.parts[-1], np.array([])).copy()
 
+        compound_mask = np.ones_like(mask_, dtype=np.uint8)
+        for view in view_codes:
+            homography = np.array(homographies[f'3-{view}'])
+            compound_mask *= cv2.warpPerspective(mask_, homography, mask_.shape[:-1])
+
         # adjust boxes when crop was set!
         if len(bounding_boxes):
             bounding_boxes[:, 1] -= cropx
@@ -113,7 +118,7 @@ def get_image_sets(
                 if cropx > 0:
                     image = image[cropx:-cropx]
 
-                images.append(image)
+                images.append(image * compound_mask)
 
         images = np.array(images)
         images = np.array(images).reshape(len(timesteps), len(views), *images.shape[1:])
@@ -150,6 +155,7 @@ def imshow(image: np.ndarray):
 
 
 def find_boxes(label: np.ndarray):
+    label = label.copy()
     boxes = []
     todo = []
     for x in range(label.shape[0]):
