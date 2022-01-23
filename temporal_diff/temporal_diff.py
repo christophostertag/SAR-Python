@@ -1,10 +1,12 @@
 import json
+from typing import Tuple
 
 import cv2
 import numpy as np
 from scipy.signal import convolve2d
 
 from common import draw_bounding_boxes, Paths, get_image_sets, imshow, find_boxes
+from evaluation.utils import compute_AP
 
 
 def get_temporal_diff_heatmaps(
@@ -13,6 +15,7 @@ def get_temporal_diff_heatmaps(
         blur_color_diff=lambda x: cv2.GaussianBlur(x, (19, 19), 0),
 ):
     fl_images = images.astype(np.float64)
+    # we set regions outside the mask to nan and use np.nanmean, np.nanquantile, etc. later
     fl_images[fl_images.sum(-1) == 0] = np.nan
 
     heatmaps = []
@@ -53,7 +56,6 @@ def get_temporal_diff_heatmaps(
         # imshow(hm * 255)
 
     heatmaps = np.array(heatmaps)
-
     return heatmaps
 
 
@@ -176,8 +178,9 @@ def get_detection_map(
         thresh_quantile=0.95,
         thresh_factor=2,
         min_detections=7,
-        boxes=[]
-) -> np.ndarray:
+        boxes=[],
+        debug=False,
+) -> Tuple[np.ndarray, np.ndarray]:
     kernel = np.ones((kernel_size, kernel_size)) / kernel_size ** 2
 
     detection_maps = []
@@ -188,14 +191,14 @@ def get_detection_map(
         detection_maps.append(detection)
 
     detection_maps = np.reshape(detection_maps, heatmaps.shape)
-    weight_map = np.empty((1024,1024,3))
-    weight_map[:,:,0] = detection_maps.sum(axis=(0, 1))
-    weight_map[:, :, 1] = weight_map[:,:,0]
-    weight_map[:, :, 2] = weight_map[:,:,0]
-    draw_bounding_boxes(weight_map, boxes, box_color=(0, 170, 255))
-    imshow(weight_map*255/20)
+
     # detection_map = detection_maps.sum(axis=(0, 1)) >= min_detections
     detection_map = detection_maps.sum(axis=(0, 1))
+
+    if debug:
+        detection_map_bb = detection_map.copy()
+        draw_bounding_boxes(np.moveaxis([detection_map_bb] * 3, 0, 2), boxes, box_color=(0, 170, 255))
+        imshow(detection_map_bb*255/20)
 
     cluster_positions, cluster_intensities = find_clusters(detection_map)
 
@@ -212,6 +215,10 @@ def get_detection_map(
 
 
 def blor(image:np.ndarray, size1=2, size2=(15, 15), size3=(19, 19), size4=(19, 19)):
+    # compute geometric mean between image and its offsets
+    # the mean overweights the first image: sqrt(sqrt(a * b) * c))
+    # mean(mean(a, b), c)) != mean(a, b, c)
+    # other possibility: apply log, convolve, apply exp
     blor = image.copy()
     for x in range(size1):
         for y in range(size1):
@@ -226,23 +233,27 @@ def blor(image:np.ndarray, size1=2, size2=(15, 15), size3=(19, 19), size4=(19, 1
     saturation = (np.max(blur_blor, axis=2) - np.min(blur_blor, axis=2)) / (1 - np.abs(luminosity * 2 - 1))
 
     blur_saturation = cv2.GaussianBlur(saturation, size3, 0)
-    mix = (np.moveaxis((blur_saturation, blur_saturation, blur_saturation), 0, 2) * image)
+    mix = np.moveaxis((blur_saturation, blur_saturation, blur_saturation), 0, 2) * image
     blur_mix = cv2.GaussianBlur(mix, size4, 0)
 
     return blur_mix
 
+
 def main(
         draw_boxes=True,
         draw_ourboxes=True,
-        show=True,
+        show=False,
+        dataset='val',  # 'val' or 'test'
+        skip=0,
 ):
     predictions = {}
-    image_sets = get_image_sets(sets=100, filter='valid')
-    i = 7
+    ground_truth = {}
+    image_sets = get_image_sets(sets=100, filter=dataset)
+
+    for i in range(skip):
+        next(image_sets)
+
     for images, paths, boxes in image_sets:
-        # if i != 0:
-        #     i -= 1
-        #     continue
         p = Paths.output / paths[3, 4]
         p.parent.mkdir(parents=True, exist_ok=True)
         try:
@@ -263,11 +274,18 @@ def main(
             imshow(im)
 
         predictions[p.parent.name] = ourboxes.tolist()
-        pass
+        ground_truth[p.parent.name] = boxes.tolist()
 
-    with open('predictions.json', 'w') as outfile:
+    p = Paths.output / f'{dataset}.json'
+    with open(p, 'w') as outfile:
         json.dump(predictions, outfile)
+    print(f'JSON created: {p}')
+
+    if len(ground_truth):
+        ap = compute_AP(predictions, ground_truth)
+        print(f"Average precision={ap:.5f} on {dataset} set.")
 
 
 if __name__ == '__main__':
-    main(show=True)
+    main(dataset='val')
+    main(dataset='test')

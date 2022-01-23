@@ -8,7 +8,7 @@ from PIL import Image
 
 
 class Paths:
-    data = Path('E:/Dokumente/data')
+    data = Path(__file__).parent / 'data'
 
     data_train = data / 'train'
     data_test = data / 'test'
