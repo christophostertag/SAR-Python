@@ -259,11 +259,15 @@ def main(
         next(image_sets)
 
     for images, paths, boxes in tqdm(image_sets):
-
+        
         images = equalize_color_distribution(images)
         print("Images color distribution equalized")
 
         # check that equalization worked
+        # print(images[5,6])
+        # print(images[5,6].min())
+        # print(images[5,6].mean())
+        # print(images[5,6].max())
         # print(np.percentile(images[0,0], 25, axis=(0,1))) # should be three 0s
         # print(np.percentile(images[0,0], 75, axis=(0,1))) # should be three 1s
 

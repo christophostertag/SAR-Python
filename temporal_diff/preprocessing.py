@@ -3,6 +3,8 @@ import numpy as np
 
 def equalize_color_distribution(images):
 
+    images = images.astype(np.float32)
+
     # 1. select each image
     for _ in images:
         for image in _:
