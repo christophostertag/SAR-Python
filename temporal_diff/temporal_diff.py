@@ -135,7 +135,7 @@ def keep_top_n(detection_map, cluster_positions, cluster_intensities, min_detect
             value = detection_map[x, y]
 
             if label[x, y]:
-                positions =[]
+                positions = []
                 break
 
             if (x + 1, y) not in positions and detection_map[x + 1, y] >= min_detections:
@@ -173,7 +173,7 @@ def keep_top_n(detection_map, cluster_positions, cluster_intensities, min_detect
 
 def get_detection_map(
         heatmaps: np.ndarray,
-        images:np.ndarray,
+        images: np.ndarray,
         kernel_size=19,
         thresh_quantile=0.95,
         thresh_factor=2,
@@ -198,7 +198,7 @@ def get_detection_map(
     if debug:
         detection_map_bb = detection_map.copy()
         draw_bounding_boxes(np.moveaxis([detection_map_bb] * 3, 0, 2), boxes, box_color=(0, 170, 255))
-        imshow(detection_map_bb*255/20)
+        imshow(detection_map_bb * 255 / 20)
 
     cluster_positions, cluster_intensities = find_clusters(detection_map)
 
@@ -214,19 +214,22 @@ def get_detection_map(
     return label, ourboxes
 
 
-def blor(image:np.ndarray, size1=2, size2=(15, 15), size3=(19, 19), size4=(19, 19)):
+def blor(image: np.ndarray, size1=3, size2=(15, 15), size3=(19, 19), size4=(19, 19)):
     # compute geometric mean between image and its offsets
-    # the mean overweights the first image: sqrt(sqrt(a * b) * c))
-    # mean(mean(a, b), c)) != mean(a, b, c)
-    # other possibility: apply log, convolve, apply exp
-    blor = image.copy()
-    for x in range(size1):
-        for y in range(size1):
-            blor[x:x - size1, y:y - size1] = np.sqrt(np.abs(blor[x:x - size1, y:y - size1] * image[:-size1, :-size1]))
+    log_im = np.log(np.abs(image))
 
-    # ret = np.nan_to_num(ret).min(axis=2)
-    # ret = (ret, ret, ret)
-    # ret = np.moveaxis(ret, 0, 2)
+    # cv2.blur can't handle np.nan or -np.inf.
+    # log_im = cv2.blur(log_im, size1 + 1)
+
+    # We made sure that np.nan and -np.inf in log_im are handled correctly by convolve2d
+    kernel = np.ones((size1, size1)) / size1 ** 2
+    log_im = np.moveaxis(log_im, -1, 0)
+    for m in log_im:
+        m[:] = convolve2d(m, kernel, mode='same')
+    log_im = np.moveaxis(log_im, 0, -1)
+
+    blor = np.exp(log_im)
+
     blur_blor = cv2.GaussianBlur(blor, size2, 0)
 
     luminosity = (np.max(blur_blor, axis=2) + np.min(blur_blor, axis=2)) * 0.5
