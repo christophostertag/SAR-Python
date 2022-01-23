@@ -8,6 +8,8 @@ from scipy.signal import convolve2d
 from common import draw_bounding_boxes, Paths, get_image_sets, imshow, find_boxes
 from evaluation.utils import compute_AP
 
+from tqdm import tqdm
+from temporal_diff.preprocessing import equalize_color_distribution
 
 def get_temporal_diff_heatmaps(
         images: np.ndarray,
@@ -256,7 +258,10 @@ def main(
     for i in range(skip):
         next(image_sets)
 
-    for images, paths, boxes in image_sets:
+    image_sets = equalize_color_distribution(image_sets)
+    print("Images sets color distribution equalized")
+
+    for images, paths, boxes in tqdm(image_sets):
         p = Paths.output / paths[3, 4]
         p.parent.mkdir(parents=True, exist_ok=True)
         try:
