@@ -1,12 +1,12 @@
 ###
 from glob import glob
+from pathlib import Path
 
 import cv2
 import numpy as np
 from matplotlib import pyplot as plt
 
 from common import get_image_metas, merge_images, select_bounding_boxes, draw_bounding_boxes
-from config import Paths
 from pixel_clustering.common import load_image_batches, load_bounding_boxes, crop190, load_mask
 
 # image_batches = load_image_batches(path=image_path, batch_size=n_images, filter=data)
@@ -17,6 +17,15 @@ from pixel_clustering.common import load_image_batches, load_bounding_boxes, cro
 # # mask and crop
 # image_mask = crop190(load_mask())
 # images = crop190(images) * image_mask
+
+class Paths:
+    data = Path('data')
+    data_train = data / 'train'
+    data_test = data / 'test'
+    data_validation = data / 'validation'
+    validation_labels = data_validation / 'labels.json'
+    output = Path('output')
+
 
 folders = Paths.data_validation.glob('*-*/')
 image_paths, homographies = get_image_metas(folders)
