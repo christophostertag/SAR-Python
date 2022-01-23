@@ -21,4 +21,4 @@ def equalize_color_distribution(images):
             # print(np.percentile(image, 25, axis=(0,1)))
             # print(np.percentile(image, 75, axis=(0,1)))
 
-    return images
+    return (images * 255.).astype(np.uint8)
