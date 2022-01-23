@@ -26,4 +26,4 @@ def equalize_color_distribution(image_sets):
 
     print("preprocessing images finished")
 
-    return images
+    return images, paths, boxes
