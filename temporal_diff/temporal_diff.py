@@ -247,6 +247,7 @@ def blor(image: np.ndarray, size1=3, size2=(15, 15), size3=(19, 19), size4=(19, 
 def main(
         draw_boxes=True,
         draw_ourboxes=True,
+        equalize_color_dist=True,
         show=False,
         dataset='val',  # 'val' or 'test'
         skip=0,
@@ -259,9 +260,9 @@ def main(
         next(image_sets)
 
     for images, paths, boxes in tqdm(image_sets):
-        
-        images = equalize_color_distribution(images)
-        print("Images color distribution equalized")
+        if equalize_color_dist:
+            images = equalize_color_distribution(images)
+            print("Images color distribution equalized")
 
         # check that equalization worked
         # print(images[5,6])
