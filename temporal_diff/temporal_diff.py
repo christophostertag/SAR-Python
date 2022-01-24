@@ -247,7 +247,7 @@ def blor(image: np.ndarray, size1=3, size2=(15, 15), size3=(19, 19), size4=(19, 
 def main(
         draw_boxes=True,
         draw_ourboxes=True,
-        equalize_color_dist=True,
+        equalize_color_dist=False,
         show=False,
         dataset='val',  # 'val' or 'test'
         skip=0,
