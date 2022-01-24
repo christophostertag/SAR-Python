@@ -247,6 +247,7 @@ def blor(image: np.ndarray, size1=3, size2=(15, 15), size3=(19, 19), size4=(19, 
 def main(
         draw_boxes=True,
         draw_ourboxes=True,
+        equalize_color_dist=True,
         show=False,
         dataset='val',  # 'val' or 'test'
         skip=0,
@@ -258,10 +259,19 @@ def main(
     for i in range(skip):
         next(image_sets)
 
-    # image_sets = equalize_color_distribution(image_sets)
-    print("Images sets color distribution equalized")
-
     for images, paths, boxes in tqdm(image_sets):
+        if equalize_color_dist:
+            images = equalize_color_distribution(images)
+            print("Images color distribution equalized")
+
+        # check that equalization worked
+        # print(images[5,6])
+        # print(images[5,6].min())
+        # print(images[5,6].mean())
+        # print(images[5,6].max())
+        # print(np.percentile(images[0,0], 25, axis=(0,1))) # should be three 0s
+        # print(np.percentile(images[0,0], 75, axis=(0,1))) # should be three 1s
+
         p = Paths.output / paths[3, 4]
         p.parent.mkdir(parents=True, exist_ok=True)
         heatmaps = get_temporal_diff_heatmaps(images, boxes, blur_color_diff=lambda x: blor(x))

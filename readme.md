@@ -1,4 +1,17 @@
-# Detection using temporal difference
+# Detecting persons using temporal difference
+
+<span style="font-size:larger;">
+Computer Vision Lab, W2021  
+</span>
+<br>
+<span style="font-size:larger;">
+Group D1  
+</span>
+
+* Aliaksandr Kahadouski
+* Christoph Ostertag
+* Simeon David Quant
+* Markus Steindl
 
 ## Configuration
 
@@ -12,7 +25,6 @@ class Paths:
     validation_labels = data / 'validation/labels.json'
 
     output = Path(__file__).parent / 'output'
-
 ```
 
 
@@ -86,8 +98,11 @@ Therefore, it can only detect moving objects or persons, but no person standing 
 
 ## Pixel clustering
 
-We presented the algorithm in the second Lab, slide set S2.
-This approach extracts features from pixels by aggregating the colors of the pixels neighborhood. Then we create a feature table, where the rows are the pixels and the columns the extracted features. We optionally apply PCA and then we cluster using minibatch k-means. The pixels far from their cluster center are considered outliers.
+We presented the pixel clustering algorithm in the second Lab, slide set S2.
+This approach extracts features from pixels by aggregating the colors of the pixel's neighborhood. 
+Then we create a feature table, where the rows are the pixels and the columns the extracted features. 
+We optionally apply PCA and then we cluster using minibatch k-means. 
+The pixels far from their cluster center are considered outliers.
 
 This algorithm was able to segment most parts of the beacon, but no humans.
 We did not develop this algorithm any further and switched to the temporal difference method explained above.
