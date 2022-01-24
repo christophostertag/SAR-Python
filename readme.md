@@ -51,7 +51,7 @@ The `sets` parameter limits the number of sets returned. E.g. if `sets == 2`, th
 ## Detection using temporal difference
 
 ```
-temporal_diff.temporal_diff.main(
+temporal_diff.main(
         draw_boxes=True,
         draw_ourboxes=True,
         show=True,
@@ -68,6 +68,8 @@ This function loads images, computes bounding boxes, and writes the following to
 The `main()` function computes results for each set of 70 images (10 views and 7 timesteps).  
 These computations are exectued:
 
+* `equalize_color_distribution()`  
+This step is optional. The `equalize_color_distribution()` function is called for all images and works on each image seperately. The input images might be brighter or less bright and thus this function aims to shift the color distribution to be more close for each image, in an attempt to make the temporal differences more meaningful. It accomplishes that by first setting the 25% percentile on each image to zero by subtracting it and then setting the 75% percentile to 1 by dividing by it.
 * `get_temporal_diff_heatmaps()`  
 For each timestep, we subtract the mean of all the other timesteps. 
 This produces 70 color difference maps.
@@ -76,8 +78,6 @@ We originally used a simple Gaussian filter for blurring. However, this was repl
 The blurred color difference maps are then reduced to one channel by computing the L2-norm of the color difference triples. The shape of the resulting heatmap tensor is `(7, 10, 1024, 1024)`.
 * `blor()`  
 The blor function is called for each image seperately. The input images normally have high values wherever there is a person or a tree. The blor function computes the geometric mean of an image and its offsets ((x offset, y offset):(0,0)(1,0)(0,1)(1,1)). The result is blurred using a Gaussian. Then the saturation is calculated. The saturation has very low values wherever there is a tree due to the arithmetic mean. But some pixels of the ground have high saturation values. Therefore to get a map, which (almost) only contains people the saturation is blurred using a Gaussian again and then multiplied with the original image and blurred using a Gaussian a third time.
-* `equalize_color_distribution()`  
-The equalize_color_distribution function is called for all images and works on each image seperately. The input images might be brighter or less bright and thus this function aims to shift the color distribution to be more close for each image, in an attempt to make the temporal differences more meaningful. It accomplishes that by first setting the 25% percentile on each image to zero by subtracting it and then setting the 75% percentile to 1 by dividing by it.
 * `get_detection_map()`  
 First, a Gaussian filter is applied to the heatmaps from `get_temporal_diff_heatmaps()`.
 Then, for each of the resulting 70 heapmaps, an individual threshold is computed:  
