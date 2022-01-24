@@ -125,7 +125,7 @@ def find_clusters(detection_map):
     return cluster_positions, cluster_intensities
 
 
-def keep_top_n(detection_map, cluster_positions, cluster_intensities, min_detections, MIN_PIXELS=100):
+def create_label_clusters(detection_map, cluster_positions, cluster_intensities, min_detections, min_pixels=100):
     label = np.zeros_like(detection_map, dtype=bool)
     sorted_indices = np.argsort(cluster_intensities)
     for i in reversed(sorted_indices):
@@ -153,7 +153,7 @@ def keep_top_n(detection_map, cluster_positions, cluster_intensities, min_detect
                 todo.append((x, y - 1))
                 positions.append((x, y - 1))
 
-        if len(positions) > MIN_PIXELS:
+        if len(positions) > min_pixels:
 
             positions = np.swapaxes(np.array(positions), 0, 1)
 
@@ -162,7 +162,7 @@ def keep_top_n(detection_map, cluster_positions, cluster_intensities, min_detect
             distance = np.linalg.norm((positions[0] - average[0], positions[1] - average[1]), axis=0)
             order = weights / (1 + np.sqrt(distance) * 0.2)
 
-            for distance_index in np.argsort(distance)[MIN_PIXELS:]:
+            for distance_index in np.argsort(distance)[min_pixels:]:
                 if order[distance_index] < cluster_intensities[i] / 4:
                     positions[:, distance_index] = -1
 
@@ -209,7 +209,7 @@ def get_detection_map(
             cluster_positions.pop(i)
             cluster_intensities.pop(i)
 
-    label = keep_top_n(detection_map, cluster_positions, cluster_intensities, min_detections, 100)
+    label = create_label_clusters(detection_map, cluster_positions, cluster_intensities, min_detections)
 
     ourboxes = find_boxes(label)
 
@@ -258,18 +258,14 @@ def main(
     for i in range(skip):
         next(image_sets)
 
-    image_sets = equalize_color_distribution(image_sets)
+    # image_sets = equalize_color_distribution(image_sets)
     print("Images sets color distribution equalized")
 
     for images, paths, boxes in tqdm(image_sets):
         p = Paths.output / paths[3, 4]
         p.parent.mkdir(parents=True, exist_ok=True)
-        try:
-            heatmaps = np.load(str(p.parent / 'heatmap.npy'))
-        except:
-            heatmaps = get_temporal_diff_heatmaps(images, boxes, blur_color_diff=lambda x: blor(x))
-            np.save(str(p.parent / 'heatmap.npy'), heatmaps)
-        detection_map, ourboxes = get_detection_map(heatmaps, images, boxes=boxes, thresh_quantile=0.985)
+        heatmaps = get_temporal_diff_heatmaps(images, boxes, blur_color_diff=lambda x: blor(x))
+        detection_map, ourboxes = get_detection_map(heatmaps, images, boxes=boxes, thresh_quantile=0.98)
         im = images[3, 4].copy()
         im[np.where(detection_map > 0)] = [0, 0, 255]
         if draw_boxes:
