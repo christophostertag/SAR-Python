@@ -19,12 +19,12 @@ from pixel_clustering.common import load_image_batches, load_bounding_boxes, cro
 # images = crop190(images) * image_mask
 
 class Paths:
-    data = Path('data')
+    data = Path('../data')
     data_train = data / 'train'
     data_test = data / 'test'
     data_validation = data / 'validation'
     validation_labels = data_validation / 'labels.json'
-    output = Path('output')
+    output = Path('../output')
 
 
 folders = Paths.data_validation.glob('*-*/')

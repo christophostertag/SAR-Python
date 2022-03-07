@@ -5,7 +5,7 @@ from typing import Optional, Tuple, Dict
 import numpy as np
 from PIL import Image
 
-from conf import Paths
+from common import Paths
 
 
 def load_image_batches(
